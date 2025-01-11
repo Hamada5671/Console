@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console DDOS Free</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #console { width: 100%; height: 400px; background: #000; color: #fff; padding: 10px; overflow-y: scroll; }
+    </style>
+</head>
+<body>
+    <h1>Console Pterodactyl</h1>
+    <div id="console">Memuat konsol...</div>
+    <input type="text" id="command" placeholder="Ketik perintah...">
+    <button onclick="sendCommand()">Kirim</button>
+
+    <script>
+        const consoleDiv = document.getElementById('console');
+        const commandInput = document.getElementById('command');
+
+        function connectConsole() {
+            fetch('/websocket').then(response => response.json()).then(data => {
+                const socket = new WebSocket(data.url);
+
+                socket.onmessage = event => {
+                    const message = JSON.parse(event.data);
+                    consoleDiv.innerHTML += `<div>${message}</div>`;
+                    consoleDiv.scrollTop = consoleDiv.scrollHeight;
+                };
+
+                socket.onopen = () => consoleDiv.innerHTML = '<div>Terkoneksi ke konsol!</div>';
+                socket.onerror = () => consoleDiv.innerHTML += '<div>Kesalahan koneksi.</div>';
+
+                window.sendCommand = () => {
+                    const command = commandInput.value;
+                    socket.send(JSON.stringify({ event: "send command", args: [command] }));
+                    commandInput.value = '';
+                };
+            });
+        }
+
+        connectConsole();
+    </script>
+</body>
+</html>
